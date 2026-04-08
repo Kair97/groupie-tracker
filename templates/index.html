@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groupie Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="site-shell">
+        <header class="hero-card">
+            <div class="hero-copy">
+                <p class="eyebrow">Live music archive</p>
+                <h1>Groupie Tracker</h1>
+                <p class="hero-text">Browse artists, revisit band history, and follow concert stops pulled from the Groupie Tracker API through a Go server and HTML templates.</p>
+            </div>
+            <div class="hero-metric">
+                <span class="hero-metric__label">Artists on screen</span>
+                <strong>{{len .Artists}}</strong>
+                {{if .Query}}
+                <span class="hero-metric__subtext">For "{{.Query}}"</span>
+                {{else}}
+                <span class="hero-metric__subtext">Ready to explore</span>
+                {{end}}
+            </div>
+        </header>
+
+        <section class="toolbar">
+            <form class="search-panel" action="/search" method="GET">
+                <label for="search-q">Search for an artist</label>
+                <div class="search-row">
+                    <input id="search-q" name="q" type="text" value="{{.Query}}" placeholder="Try Queen, Daft Punk, Arctic Monkeys">
+                    <button type="submit">Search</button>
+                </div>
+                <p class="search-help">This search sends a request from the browser to your Go server, which then looks up artists and returns a new HTML page.</p>
+            </form>
+
+            {{if .Query}}
+            <a class="text-link" href="/">Back to all artists</a>
+            {{end}}
+        </section>
+
+        {{if .Message}}
+        <section class="notice-banner">
+            <p>{{.Message}}</p>
+        </section>
+        {{end}}
+
+        {{if .Artists}}
+        <main class="artist-grid">
+            {{range .Artists}}
+            <article class="artist-card">
+                <div class="artist-card__media">
+                    <img src="{{.Image}}" alt="{{.Name}}">
+                </div>
+                <div class="artist-card__body">
+                    <div class="artist-card__header">
+                        <p class="artist-card__eyebrow">Artist profile</p>
+                        <h2>{{.Name}}</h2>
+                    </div>
+
+                    <div class="meta-list">
+                        <div class="meta-item">
+                            <span>Active since</span>
+                            <strong>{{.CreationDate}}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>First album</span>
+                            <strong>{{.FirstAlbum}}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>Members</span>
+                            <strong>{{len .Members}}</strong>
+                        </div>
+                    </div>
+
+                    <a class="button-link" href="/artist?id={{.ID}}">View details</a>
+                </div>
+            </article>
+            {{end}}
+        </main>
+        {{else}}
+        <section class="empty-state">
+            <h2>No artists to show</h2>
+            <p>Try another search and the server will send back similar matches when it can find them.</p>
+            <a class="button-link" href="/">See all artists</a>
+        </section>
+        {{end}}
+    </div>
+</body>
+</html>
