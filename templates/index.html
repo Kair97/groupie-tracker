@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groupie Tracker Search Bar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script defer src="/static/ui.js"></script>
+    <script defer src="/static/search.js"></script>
+</head>
+<body>
+    <div class="site-shell">
+        <header class="hero-card">
+            <div class="hero-copy">
+                <p class="eyebrow">Searchable music archive</p>
+                <h1>Groupie Tracker Search Bar</h1>
+                <p class="hero-text">Search by artist, member, location, creation year, or first album date with focused filters and live suggestions.</p>
+            </div>
+        </header>
+
+        <main class="visual-dashboard" aria-label="Music data visualizations">
+            <section class="summary-strip" aria-label="Collection summary">
+                <article class="summary-stat">
+                    <span>Artists</span>
+                    <strong>{{.Visuals.TotalArtists}}</strong>
+                </article>
+                <article class="summary-stat">
+                    <span>Locations</span>
+                    <strong>{{.Visuals.TotalLocations}}</strong>
+                </article>
+                <article class="summary-stat">
+                    <span>Concert dates</span>
+                    <strong>{{.Visuals.TotalConcertDates}}</strong>
+                </article>
+                <article class="summary-stat">
+                    <span>Avg. members</span>
+                    <strong>{{.Visuals.AverageMembers}}</strong>
+                </article>
+                <article class="summary-stat">
+                    <span>Era range</span>
+                    <strong>{{.Visuals.EarliestCreation}}-{{.Visuals.LatestCreation}}</strong>
+                </article>
+            </section>
+        </main>
+
+        <section class="toolbar">
+            <form class="search-panel" action="/search#results" method="GET" autocomplete="off">
+                <label for="search-q">Search the full data system</label>
+                <div class="search-row search-row--suggestions">
+                    <select id="search-type" name="type" aria-label="Search type">
+                        {{range .SearchTypes}}
+                        <option value="{{.Value}}" {{if .Selected}}selected{{end}}>{{.Label}}</option>
+                        {{end}}
+                    </select>
+                    <input id="search-q" name="q" type="text" value="{{.Query}}" placeholder="Try Jimi Hendrix, london-uk, 1973, or 05-08-1967" aria-autocomplete="list" aria-controls="search-suggestions" aria-expanded="false">
+                    <button type="submit">Search</button>
+                    <div id="search-suggestions" class="suggestion-list" role="listbox" aria-label="Search suggestions"></div>
+                </div>
+            </form>
+
+            {{if .Query}}
+            <a class="text-link" href="/#results">Back to all artists</a>
+            {{end}}
+        </section>
+
+        {{if .Message}}
+        <section class="notice-banner">
+            <p>{{.Message}}</p>
+        </section>
+        {{end}}
+
+        {{if .Artists}}
+        <section id="results" class="artist-grid" aria-label="Artist cards">
+            {{range .Artists}}
+            <article class="artist-card">
+                <div class="artist-card__media">
+                    <img src="{{.Image}}" alt="{{.Name}}">
+                </div>
+                <div class="artist-card__body">
+                    <div class="artist-card__header">
+                        <p class="artist-card__eyebrow">Artist profile</p>
+                        <h2>{{.Name}}</h2>
+                        {{if .MatchSummary}}
+                        <p class="match-summary">{{.MatchSummary}}</p>
+                        {{end}}
+                    </div>
+
+                    <div class="meta-list">
+                        <div class="meta-item">
+                            <span>Active since</span>
+                            <strong>{{.CreationDate}}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>First album</span>
+                            <strong>{{.FirstAlbum}}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>Members</span>
+                            <strong>{{len .Members}}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>Locations API</span>
+                            <strong>{{.LocationCount}}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>Dates API</span>
+                            <strong>{{.DateCount}}</strong>
+                        </div>
+                    </div>
+
+                    <a class="button-link" href="/artist?id={{.ID}}">View details</a>
+                </div>
+            </article>
+            {{end}}
+        </section>
+        {{else}}
+        <section id="results" class="empty-state">
+            <h2>No artists to show</h2>
+            <p>Try another search and the server will send back similar matches when it can find them.</p>
+            <a class="button-link" href="/">See all artists</a>
+        </section>
+        {{end}}
+    </div>
+</body>
+</html>

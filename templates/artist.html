@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Artist.Name}} | Groupie Tracker Search Bar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <script defer src="/static/ui.js"></script>
+</head>
+<body>
+    <div class="site-shell">
+        <a class="text-link text-link--top" href="/">Back to all artists</a>
+
+        <header class="detail-hero">
+            <div class="detail-hero__image">
+                <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}">
+            </div>
+            <div class="detail-hero__content">
+                <p class="eyebrow">Artist geolocalization</p>
+                <h1>{{.Artist.Name}}</h1>
+                <p class="hero-text">Artist history, lineup, concert locations, map markers, and the tour path generated from Groupie Tracker API data.</p>
+
+                <div class="detail-stats">
+                    <article class="stat-box">
+                        <span>Active since</span>
+                        <strong>{{.Artist.CreationDate}}</strong>
+                    </article>
+                    <article class="stat-box">
+                        <span>First album</span>
+                        <strong>{{.Artist.FirstAlbum}}</strong>
+                    </article>
+                    <article class="stat-box">
+                        <span>Members</span>
+                        <strong>{{len .Artist.Members}}</strong>
+                    </article>
+                    <article class="stat-box">
+                        <span>Locations API</span>
+                        <strong>{{len .Locations}}</strong>
+                    </article>
+                    <article class="stat-box">
+                        <span>Dates API</span>
+                        <strong>{{len .Dates}}</strong>
+                    </article>
+                    <article class="stat-box">
+                        <span>Relation stops</span>
+                        <strong>{{.Summary.ConcertCount}}</strong>
+                    </article>
+                </div>
+            </div>
+        </header>
+
+        <main class="detail-layout">
+            <section class="summary-strip" aria-label="Artist summary">
+                <article class="summary-stat">
+                    <span>Locations</span>
+                    <strong>{{.Summary.LocationCount}}</strong>
+                </article>
+                <article class="summary-stat">
+                    <span>Concert dates</span>
+                    <strong>{{.Summary.DateCount}}</strong>
+                </article>
+                <article class="summary-stat">
+                    <span>Timeline stops</span>
+                    <strong>{{.Summary.ConcertCount}}</strong>
+                </article>
+                <article class="summary-stat">
+                    <span>Mapped stops</span>
+                    <strong>{{len .MapStops}}</strong>
+                </article>
+                <article class="summary-stat summary-stat--wide">
+                    <span>Busiest stop</span>
+                    {{if .Summary.PeakStop.Location}}
+                    <strong>{{formatLocation .Summary.PeakStop.Location}}</strong>
+                    {{else}}
+                    <strong>Not available</strong>
+                    {{end}}
+                </article>
+            </section>
+
+            <section class="panel">
+                <div class="panel__heading">
+                    <p class="eyebrow">Geocoded route</p>
+                    <h2>Concert locations map</h2>
+                </div>
+
+                {{if .MapStops}}
+                <div id="concert-map" class="concert-map" aria-label="{{.Artist.Name}} concert locations map"></div>
+                <script id="concert-map-data" type="application/json">{{toJSON .MapStops}}</script>
+                <ol class="route-list" aria-label="Historical concert route">
+                    {{range .MapStops}}
+                    <li>
+                        <span>{{.DisplayLocation}}</span>
+                        <small>{{index .Dates 0 | formatDate}}</small>
+                    </li>
+                    {{end}}
+                </ol>
+                {{else}}
+                <p class="muted-text">No mapped concert locations are available for this artist right now.</p>
+                {{end}}
+            </section>
+
+            <section class="panel">
+                <div class="panel__heading">
+                    <p class="eyebrow">Lineup</p>
+                    <h2>Band members</h2>
+                </div>
+                <div class="member-list">
+                    {{range .Artist.Members}}
+                    <span class="member-pill">{{.}}</span>
+                    {{end}}
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel__heading">
+                    <p class="eyebrow">API Endpoints</p>
+                    <h2>Locations and dates</h2>
+                </div>
+
+                <div class="concert-grid">
+                    <article class="concert-card">
+                        <h3>Locations endpoint</h3>
+                        {{if .Locations}}
+                        <div class="member-list">
+                            {{range .Locations}}
+                            <span class="member-pill">{{formatLocation .}}</span>
+                            {{end}}
+                        </div>
+                        {{else}}
+                        <p class="muted-text">No locations are available for this artist right now.</p>
+                        {{end}}
+                    </article>
+                    <article class="concert-card">
+                        <h3>Dates endpoint</h3>
+                        {{if .Dates}}
+                        <ul class="date-list">
+                            {{range .Dates}}
+                            <li>{{formatDate .}}</li>
+                            {{end}}
+                        </ul>
+                        {{else}}
+                        <p class="muted-text">No dates are available for this artist right now.</p>
+                        {{end}}
+                    </article>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel__heading">
+                    <p class="eyebrow">Relation Endpoint</p>
+                    <h2>Concert timeline</h2>
+                </div>
+
+                {{if .Concerts}}
+                <div class="concert-grid">
+                    {{range .Concerts}}
+                    <article class="concert-card">
+                        <h3>{{formatLocation .Location}}</h3>
+                        <div class="mini-meter" aria-label="{{.DateCount}} concert dates">
+                            <span style="--bar-width: {{.BarWidth}}%;"></span>
+                        </div>
+                        <p class="concert-count">{{.DateCount}} date{{if ne .DateCount 1}}s{{end}}</p>
+                        <ul class="date-list">
+                            {{range .Dates}}
+                            <li>{{formatDate .}}</li>
+                            {{end}}
+                        </ul>
+                    </article>
+                    {{end}}
+                </div>
+                {{else}}
+                <p class="muted-text">No concert dates are available for this artist right now.</p>
+                {{end}}
+            </section>
+        </main>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/map.js"></script>
+</body>
+</html>
